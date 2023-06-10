@@ -2,15 +2,22 @@ let timeSpent = 0;
 let timer;
 
 const LIMIT = 10; // Seconds
-const URL = "https://www.facebook.com" // Where it redirects
+const URL = "https://campusgrado.fi.uba.ar/"; // Where it redirects
+
+function isTwitterUrl(url) {
+  return url.includes("https://twitter.com/");
+}
 
 function startTimer(tabId) {
   timer = setInterval(() => {
     timeSpent++;
     console.log(`Time spent on Twitter: ${timeSpent} seconds`);
-    if (timeSpent >= LIMIT) {
-      chrome.tabs.update(tabId, { url: URL });
-    }
+    chrome.tabs.get(tabId, tab => {
+      if (isTwitterUrl(tab.url) && timeSpent >= LIMIT) {
+        chrome.tabs.update(tabId, { url: URL });
+        stopTimer();
+      }
+    });
   }, 1000);
 }
 
@@ -20,7 +27,7 @@ function stopTimer() {
 
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
-    if (changeInfo.url.includes("twitter.com") || changeInfo.url.includes("youtube.com")) {
+    if (isTwitterUrl(changeInfo.url)) {
       startTimer(tabId);
     } else {
       stopTimer();
@@ -30,7 +37,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.tabs.onActivated.addListener(activeInfo => {
   chrome.tabs.get(activeInfo.tabId, tab => {
-    if (tab.url && tab.url.includes("twitter.com")) {
+    if (tab.url && isTwitterUrl(tab.url)) {
       startTimer(activeInfo.tabId);
     } else {
       stopTimer();
