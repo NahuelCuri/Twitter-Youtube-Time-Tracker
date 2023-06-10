@@ -1,11 +1,11 @@
 let timeSpent = 0;
 let timer;
 
-const LIMIT = 10; // Seconds
+let limit = 30; // Seconds
 const URL = "https://campusgrado.fi.uba.ar/"; // Where it redirects
 
-function isTwitterUrl(url) {
-  return url.includes("https://twitter.com/");
+function isUrl(url) {
+  return url.includes("https://twitter.com/") || url.includes("https://www.youtube.com/");
 }
 
 function startTimer(tabId) {
@@ -13,7 +13,7 @@ function startTimer(tabId) {
     timeSpent++;
     console.log(`Time spent on Twitter: ${timeSpent} seconds`);
     chrome.tabs.get(tabId, tab => {
-      if (isTwitterUrl(tab.url) && timeSpent >= LIMIT) {
+      if (isUrl(tab.url) && timeSpent >= limit) {
         chrome.tabs.update(tabId, { url: URL });
         stopTimer();
       }
@@ -25,9 +25,18 @@ function stopTimer() {
   clearInterval(timer);
 }
 
+chrome.runtime.onMessage.addListener((msg, sender, response) => {
+  if (msg.command && msg.command === "getTimeSpent") {
+    response({ timeSpent: timeSpent, limit: limit }); // Include the current time limit in the response
+  } else if (msg.command && msg.command === "setTimeLimit") {
+    limit = msg.timeLimit;
+    response({ success: true });
+  }
+});
+
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
-    if (isTwitterUrl(changeInfo.url)) {
+    if (isUrl(changeInfo.url)) {
       startTimer(tabId);
     } else {
       stopTimer();
@@ -37,16 +46,10 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 
 chrome.tabs.onActivated.addListener(activeInfo => {
   chrome.tabs.get(activeInfo.tabId, tab => {
-    if (tab.url && isTwitterUrl(tab.url)) {
+    if (tab.url && isUrl(tab.url)) {
       startTimer(activeInfo.tabId);
     } else {
       stopTimer();
     }
   });
-});
-
-chrome.runtime.onMessage.addListener((msg, sender, response) => {
-  if (msg.command && msg.command === "getTimeSpent") {
-    response({ timeSpent: timeSpent });
-  }
 });
