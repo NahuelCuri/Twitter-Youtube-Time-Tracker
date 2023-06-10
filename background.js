@@ -12,6 +12,7 @@ function startTimer(tabId) {
   timer = setInterval(() => {
     timeSpent++;
     console.log(`Time spent on Twitter: ${timeSpent} seconds`);
+    console.log("Time limit: " + limit);
     chrome.tabs.get(tabId, tab => {
       if (isUrl(tab.url) && timeSpent >= limit) {
         chrome.tabs.update(tabId, { url: URL });
