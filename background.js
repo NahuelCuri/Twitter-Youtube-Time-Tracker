@@ -1,11 +1,11 @@
 let timeSpent = 0;
 let timer;
 
-let limit = 30; // Seconds
+let limit = 1; // Seconds
 const URL = "https://campusgrado.fi.uba.ar/"; // Where it redirects
 
 function isUrl(url) {
-  return url.includes("https://twitter.com/") || url.includes("https://www.youtube.com/");
+  return (url.includes("https://twitter.com/") || url.includes("https://www.youtube.com/") || url.includes("https://www.twitch.tv/"));
 }
 
 function startTimer(tabId) {
